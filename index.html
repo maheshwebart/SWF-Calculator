@@ -3,41 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIP + SWF Calculator</title>
+  <title>Future Wealth Planner - SIP + SWF</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2rem; background: #f8f8f8; }
-    .container { max-width: 800px; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: auto; }
-    h2 { text-align: center; }
-    label { display: block; margin-top: 1rem; }
-    input { width: 100%; padding: 0.5rem; margin-top: 0.25rem; }
-    button { margin-top: 1.5rem; padding: 0.75rem; width: 100%; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
-    button:hover { background: #45a049; }
-    .output, .summary { margin-top: 2rem; font-weight: bold; white-space: pre-wrap; }
-    .summary { background: #e8f5e9; padding: 1rem; border-radius: 8px; border-left: 6px solid #4CAF50; }
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f4f8fb; color: #333; }
+    .container { max-width: 850px; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.1); margin: auto; }
+    h2 { text-align: center; margin-bottom: 1rem; color: #2c3e50; }
+    label { display: block; margin-top: 1.5rem; font-weight: 600; }
+    input[type="range"] { width: 100%; }
+    .range-value { font-weight: bold; color: #2c3e50; }
+    .slider-group { display: flex; justify-content: space-between; align-items: center; }
+    button { margin-top: 2rem; padding: 0.75rem; width: 100%; background: #2ecc71; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+    button:hover { background: #27ae60; }
+    .output, .summary { margin-top: 2rem; white-space: pre-wrap; }
+    .summary { background: #e9f7ef; padding: 1rem; border-radius: 8px; border-left: 6px solid #2ecc71; }
     canvas { margin-top: 2rem; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>SIP + SWF Retirement Planner</h2>
+    <h2>Future Wealth Planner 💰<br><small>Plan your SIP investment to enjoy SWF in retirement</small></h2>
 
-    <label for="sipYears">Years of SIP <span title="How many years you'll invest monthly via SIP">ℹ️</span></label>
-    <input type="number" id="sipYears" placeholder="e.g. 20">
+    <label for="sipYears">Years of SIP Investment: <span class="range-value" id="sipYearsValue">20</span> years</label>
+    <input type="range" id="sipYears" min="1" max="40" value="20" oninput="updateSliderValue('sipYears')">
 
-    <label for="rate">Expected Annual Return (%) <span title="Average return from mutual fund or investment">ℹ️</span></label>
-    <input type="number" id="rate" placeholder="e.g. 12">
+    <label for="rate">Expected Annual Return (%): <span class="range-value" id="rateValue">12</span>%</label>
+    <input type="range" id="rate" min="1" max="20" value="12" oninput="updateSliderValue('rate')">
 
-    <label for="inflation">Inflation Rate (%) <span title="Average inflation (rise in cost of living)">ℹ️</span></label>
-    <input type="number" id="inflation" placeholder="e.g. 6">
+    <label for="inflation">Expected Inflation Rate (%): <span class="range-value" id="inflationValue">6</span>%</label>
+    <input type="range" id="inflation" min="1" max="15" value="6" oninput="updateSliderValue('inflation')">
 
-    <label for="swfAmount">Desired Monthly SWF at Retirement (₹ in today's value)</label>
-    <input type="number" id="swfAmount" placeholder="e.g. 30000">
+    <label for="swfAmount">Desired Monthly Withdrawal in Today’s Value (₹): <span class="range-value" id="swfAmountValue">30000</span></label>
+    <input type="range" id="swfAmount" min="5000" max="200000" step="1000" value="30000" oninput="updateSliderValue('swfAmount')">
 
-    <label for="swfYears">How many years do you want SWF?</label>
-    <input type="number" id="swfYears" placeholder="e.g. 25">
+    <label for="swfYears">Years of SWF Withdrawals: <span class="range-value" id="swfYearsValue">25</span> years</label>
+    <input type="range" id="swfYears" min="5" max="40" value="25" oninput="updateSliderValue('swfYears')">
 
-    <button onclick="calculatePlan()">Calculate</button>
+    <button onclick="calculatePlan()">Calculate My Plan</button>
 
     <div class="summary" id="summary"></div>
     <div class="output" id="output"></div>
@@ -46,6 +48,10 @@
 
   <script>
     let chart;
+
+    function updateSliderValue(id) {
+      document.getElementById(id + 'Value').textContent = document.getElementById(id).value;
+    }
 
     function calculatePlan() {
       const sipYears = parseFloat(document.getElementById('sipYears').value);
@@ -62,30 +68,33 @@
 
       const monthlyRate = rate / 12;
       const months = sipYears * 12;
-      let estimatedSIP = requiredCorpus * monthlyRate / (Math.pow(1 + monthlyRate, months) - 1);
+      const estimatedSIP = requiredCorpus * monthlyRate / (Math.pow(1 + monthlyRate, months) - 1);
 
       const totalInvested = estimatedSIP * months;
       const totalWithdrawn = swfFuture * swfMonths;
       const wealthGain = requiredCorpus - totalInvested;
 
-      let summaryText = `📊 SIP Summary\n`;
-      summaryText += `-------------------------------------\n`;
-      summaryText += `SIP Duration: ${sipYears} years\n`;
-      summaryText += `Monthly SIP Required: ₹${estimatedSIP.toFixed(2)}\n`;
-      summaryText += `Total Invested: ₹${totalInvested.toFixed(2)}\n`;
-      summaryText += `Expected Final Corpus: ₹${requiredCorpus.toFixed(2)}\n`;
-      summaryText += `Wealth Gained: ₹${wealthGain.toFixed(2)}\n`;
-      summaryText += `\n💸 SWF Phase Plan\n`;
-      summaryText += `-------------------------------------\n`;
-      summaryText += `Adjusted Monthly Withdrawal: ₹${swfFuture.toFixed(2)}\n`;
-      summaryText += `Withdrawal Duration: ${swfYears} years\n`;
-      summaryText += `Total Withdrawn over SWF Phase: ₹${totalWithdrawn.toFixed(2)}`;
+      let summaryText = `📘 Explanation of Terms:\n`;
+      summaryText += `• SIP (Systematic Investment Plan): Monthly investment during your working years.\n`;
+      summaryText += `• SWF (Systematic Withdrawal Facility): Monthly withdrawal after retirement.\n`;
+      summaryText += `• Inflation: Increase in cost of living each year.\n`;
+      summaryText += `• Corpus: Final amount accumulated at retirement.\n`;
+      summaryText += `\n📊 Plan Summary:\n`;
+      summaryText += `• SIP Duration: ${sipYears} years\n`;
+      summaryText += `• Monthly SIP Required: ₹${estimatedSIP.toFixed(2)}\n`;
+      summaryText += `• Total Invested: ₹${totalInvested.toFixed(2)}\n`;
+      summaryText += `• Expected Final Corpus: ₹${requiredCorpus.toFixed(2)}\n`;
+      summaryText += `• Wealth Gained: ₹${wealthGain.toFixed(2)}\n`;
+      summaryText += `\n💸 SWF Phase:\n`;
+      summaryText += `• Monthly Withdrawal (Inflation Adjusted): ₹${swfFuture.toFixed(2)}\n`;
+      summaryText += `• Duration of Withdrawal: ${swfYears} years\n`;
+      summaryText += `• Total Withdrawn over SWF: ₹${totalWithdrawn.toFixed(2)}`;
 
       document.getElementById('summary').innerText = summaryText;
 
-      let outputText = `To sustain a monthly SWF of ₹${swfToday} (inflation-adjusted to ₹${swfFuture.toFixed(2)}) for ${swfYears} years,\n`;
-      outputText += `you need a corpus of approximately ₹${requiredCorpus.toFixed(2)} at the end of ${sipYears} years.\n`;
-      outputText += `This requires a monthly SIP of approximately ₹${estimatedSIP.toFixed(2)}.\n`;
+      let outputText = `To enjoy ₹${swfToday} per month (adjusted to ₹${swfFuture.toFixed(2)} in ${sipYears} years),\n`;
+      outputText += `you’ll need a retirement corpus of ₹${requiredCorpus.toFixed(2)}.\n`;
+      outputText += `Start investing ₹${estimatedSIP.toFixed(2)} monthly now to reach your goal.`;
 
       document.getElementById('output').innerText = outputText;
 
@@ -107,10 +116,10 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'SIP Corpus Growth Over Time',
+            label: 'Corpus Growth Over Time',
             data: data,
-            borderColor: 'rgba(75, 192, 192, 1)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(46, 204, 113, 1)',
+            backgroundColor: 'rgba(46, 204, 113, 0.2)',
             fill: true,
             tension: 0.3
           }]
