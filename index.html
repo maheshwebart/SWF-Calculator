@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIP + SWF Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f8f8f8; }
+    .container { max-width: 700px; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: auto; }
+    h2 { text-align: center; }
+    label { display: block; margin-top: 1rem; }
+    input { width: 100%; padding: 0.5rem; margin-top: 0.25rem; }
+    button { margin-top: 1.5rem; padding: 0.75rem; width: 100%; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+    button:hover { background: #45a049; }
+    .output { margin-top: 2rem; font-weight: bold; white-space: pre-wrap; }
+    canvas { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>SIP + SWF Retirement Planner</h2>
+
+    <label for="sipYears">Years of SIP</label>
+    <input type="number" id="sipYears" placeholder="e.g. 20">
+
+    <label for="rate">Expected Annual Return (%)</label>
+    <input type="number" id="rate" placeholder="e.g. 12">
+
+    <label for="inflation">Inflation Rate (%)</label>
+    <input type="number" id="inflation" placeholder="e.g. 6">
+
+    <label for="swfAmount">Desired Monthly SWF at Retirement (₹ in today's value)</label>
+    <input type="number" id="swfAmount" placeholder="e.g. 30000">
+
+    <label for="swfYears">How many years do you want SWF?</label>
+    <input type="number" id="swfYears" placeholder="e.g. 25">
+
+    <button onclick="calculatePlan()">Calculate</button>
+
+    <div class="output" id="output"></div>
+    <canvas id="sipChart" height="200"></canvas>
+  </div>
+
+  <script>
+    let chart;
+
+    function calculatePlan() {
+      const sipYears = parseFloat(document.getElementById('sipYears').value);
+      const rate = parseFloat(document.getElementById('rate').value) / 100;
+      const inflation = parseFloat(document.getElementById('inflation').value) / 100;
+      const swfToday = parseFloat(document.getElementById('swfAmount').value);
+      const swfYears = parseFloat(document.getElementById('swfYears').value);
+
+      const swfMonths = swfYears * 12;
+      const realRate = ((1 + rate) / (1 + inflation)) - 1;
+      const realMonthlyRate = realRate / 12;
+      const swfFuture = swfToday * Math.pow(1 + inflation, sipYears);
+      const requiredCorpus = swfFuture * ((1 - Math.pow(1 + realMonthlyRate, -swfMonths)) / realMonthlyRate);
+
+      const monthlyRate = rate / 12;
+      const months = sipYears * 12;
+
+      // Calculate required SIP
+      let estimatedSIP = requiredCorpus * monthlyRate / (Math.pow(1 + monthlyRate, months) - 1);
+
+      let outputText = `To sustain a monthly SWF of ₹${swfToday} (adjusted for inflation to ₹${swfFuture.toFixed(2)}) for ${swfYears} years,\n`;
+      outputText += `you need a corpus of approximately ₹${requiredCorpus.toFixed(2)} at the end of ${sipYears} years.\n\n`;
+      outputText += `To build this corpus, you need to invest approximately ₹${estimatedSIP.toFixed(2)} per month via SIP for ${sipYears} years.\n`;
+
+      document.getElementById('output').innerText = outputText;
+
+      // Prepare chart data
+      let labels = [];
+      let data = [];
+      let accumulated = 0;
+
+      for (let i = 1; i <= months; i++) {
+        accumulated = accumulated * (1 + monthlyRate) + estimatedSIP;
+        if (i % 12 === 0) {
+          labels.push(`Year ${i / 12}`);
+          data.push(accumulated.toFixed(2));
+        }
+      }
+
+      if (chart) chart.destroy();
+
+      const ctx = document.getElementById('sipChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Projected SIP Corpus Growth',
+            data: data,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              ticks: {
+                callback: function(value) {
+                  return '₹' + value.toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
