@@ -74,6 +74,10 @@
       const totalWithdrawn = swfFuture * swfMonths;
       const wealthGain = requiredCorpus - totalInvested;
 
+      const safeSWF = requiredCorpus * rate / 12;
+
+      const futureCorpus = requiredCorpus * Math.pow(1 + monthlyRate, swfMonths) - swfFuture * ((Math.pow(1 + monthlyRate, swfMonths) - 1) / monthlyRate);
+
       let summaryText = `📘 Explanation of Terms:\n`;
       summaryText += `• SIP (Systematic Investment Plan): Monthly investment during your working years.\n`;
       summaryText += `• SWF (Systematic Withdrawal Facility): Monthly withdrawal after retirement.\n`;
@@ -88,7 +92,10 @@
       summaryText += `\n💸 SWF Phase:\n`;
       summaryText += `• Monthly Withdrawal (Inflation Adjusted): ₹${swfFuture.toFixed(2)}\n`;
       summaryText += `• Duration of Withdrawal: ${swfYears} years\n`;
-      summaryText += `• Total Withdrawn over SWF: ₹${totalWithdrawn.toFixed(2)}`;
+      summaryText += `• Total Withdrawn over SWF: ₹${totalWithdrawn.toFixed(2)}\n`;
+      summaryText += `• Corpus Remaining After SWF: ₹${futureCorpus.toFixed(2)}\n`;
+      summaryText += `\n🛡️ Sustainable Withdrawal (Corpus Protected):\n`;
+      summaryText += `• You can withdraw ₹${safeSWF.toFixed(2)}/month forever, assuming returns stay at ${(rate * 100).toFixed(2)}% annually.`;
 
       document.getElementById('summary').innerText = summaryText;
 
